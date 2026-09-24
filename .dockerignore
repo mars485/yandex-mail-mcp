@@ -1,0 +1,7 @@
+*
+!server.py
+!oauth_auth.py
+!oauth_check.py
+!smoke_test.py
+!requirements.txt
+!Dockerfile

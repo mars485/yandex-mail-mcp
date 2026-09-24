@@ -1,0 +1,6 @@
+mcp==2.2.0
+IMAPClient==3.1.0
+starlette==1.7.0
+uvicorn==0.53.0
+PyJWT[crypto]==2.15.0
+httpx2==2.13.1

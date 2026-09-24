@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+.pytest_cache/
+.venv/
+*.log
+
+docker-compose.override.yml
+*.pem
+*.key
+*.p12
+*.zip

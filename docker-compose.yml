@@ -1,0 +1,29 @@
+services:
+  yandex-mail-mcp:
+    build: .
+    image: yandex-mail-mcp:local
+    container_name: yandex-mail-mcp
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${MCP_BIND_IP:-0.0.0.0}:8822:8000"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 512m
+    init: true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
