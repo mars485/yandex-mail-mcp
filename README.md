@@ -13,7 +13,7 @@
 - [Установка](#установка-на-zimaos)
 - [Authentik и ChatGPT](AUTHENTIK.md)
 - [Результаты проверок](VALIDATION.md)
-- [Статья для Хабра](docs/habr-post.md)
+
 
 ## Архитектура
 
@@ -195,7 +195,7 @@ python -m pip check
 
 Тесты используют фиктивный IMAP и временные RSA-ключи. conftest изолирует OAuth-настройки от окружения оператора. Прямые зависимости закреплены; транзитивные версии и базовый Docker tag не составляют воспроизводимый lockfile. Подробности — [VALIDATION.md](VALIDATION.md).
 
-`server.py` — IMAP, HTTP, инструменты и static auth; `oauth_auth.py` — JWT/JWKS; `oauth_check.py` — discovery; `smoke_test.py` — HTTP/MCP/IMAP; `test_*.py` — тесты; Dockerfile/Compose/env — установка; AUTHENTIK.md — OAuth; docs/habr-post.md — статья.
+`server.py` — IMAP, HTTP, инструменты и static auth; `oauth_auth.py` — JWT/JWKS; `oauth_check.py` — discovery; `smoke_test.py` — HTTP/MCP/IMAP; `test_*.py` — тесты; Dockerfile/Compose/env — установка; AUTHENTIK.md — OAuth.
 
 ## Источники
 
@@ -204,3 +204,4 @@ python -m pip check
 - [Authentik: OAuth2 provider](https://docs.goauthentik.io/add-secure-apps/providers/oauth2/)
 
 В issue прикладывайте версию, этап сбоя и обезличенный результат. Не прикладывайте env, Authorization, Client Secret или письма.
+
