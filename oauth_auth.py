@@ -10,6 +10,8 @@ import jwt
 
 ISSUER = os.getenv("OAUTH_ISSUER", "")
 JWKS_URL = os.getenv("OAUTH_JWKS_URL", "") or ISSUER + "jwks/"
+BACKCHANNEL_ISSUER = os.getenv("OAUTH_BACKCHANNEL_URL", "") or ISSUER
+JWKS_FETCH_URL = (BACKCHANNEL_ISSUER + "jwks/") if BACKCHANNEL_ISSUER != ISSUER else JWKS_URL
 RESOURCE = os.getenv("MCP_PUBLIC_URL", "")
 METADATA_URL = "https://" + urlsplit(RESOURCE).netloc + "/.well-known/oauth-protected-resource"
 CLIENT_ID = os.getenv("OAUTH_CLIENT_ID", "")
@@ -17,7 +19,7 @@ SCOPES = ["mail:read", "mail:write"]
 
 
 def validate_config():
-    for value in (ISSUER, JWKS_URL, RESOURCE):
+    for value in (ISSUER, JWKS_URL, RESOURCE, BACKCHANNEL_ISSUER, JWKS_FETCH_URL):
         parsed = urlsplit(value)
         if (parsed.scheme != "https" or not parsed.hostname or parsed.username is not None
                 or parsed.password is not None or parsed.query or parsed.fragment
@@ -28,6 +30,9 @@ def validate_config():
         raise ValueError("Invalid resource path or issuer")
     if not CLIENT_ID.strip():
         raise ValueError("Missing OAuth client ID")
+    if (urlsplit(BACKCHANNEL_ISSUER).hostname != urlsplit(ISSUER).hostname
+            or urlsplit(BACKCHANNEL_ISSUER).path != urlsplit(ISSUER).path):
+        raise ValueError("OAuth backchannel must keep the issuer host and path")
 
 
 def resource_metadata():
@@ -44,15 +49,24 @@ class AuthentikVerifier:
         self.lock = anyio.Lock()
 
     async def fetch_keys(self):
-        # Only this fixed HTTPS URL is fetched. JWT jku/x5u never influence it.
+        # Only operator-configured HTTPS URLs are fetched. JWT jku/x5u are ignored.
+        # The canonical endpoint survives proxy port migrations; a validated
+        # backchannel covers networks without hairpin routing. No TLS bypass.
         async with httpx2.AsyncClient(timeout=8, follow_redirects=False, trust_env=False) as client:
-            async with client.stream("GET", JWKS_URL) as response:
-                response.raise_for_status()
-                raw = bytearray()
-                async for chunk in response.aiter_bytes():
-                    raw.extend(chunk)
-                    if len(raw) > 65536:
-                        raise ValueError("JWKS too large")
+            endpoints = list(dict.fromkeys([JWKS_URL, JWKS_FETCH_URL]))
+            for index, endpoint in enumerate(endpoints):
+                try:
+                    async with client.stream("GET", endpoint, headers={"Host": urlsplit(ISSUER).netloc}) as response:
+                        response.raise_for_status()
+                        raw = bytearray()
+                        async for chunk in response.aiter_bytes():
+                            raw.extend(chunk)
+                            if len(raw) > 65536:
+                                raise ValueError("JWKS too large")
+                    break
+                except httpx2.RequestError:
+                    if index == len(endpoints) - 1:
+                        raise
         data = json.loads(raw)
         if not isinstance(data.get("keys"), list) or not 1 <= len(data["keys"]) <= 20:
             raise ValueError("Invalid JWKS")

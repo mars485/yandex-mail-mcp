@@ -9,6 +9,8 @@ services:
     ports:
       - "${MCP_BIND_IP:-0.0.0.0}:8822:8000"
     read_only: true
+    volumes:
+      - mail-state:/data
     cap_drop:
       - ALL
     security_opt:
@@ -27,3 +29,6 @@ services:
       options:
         max-size: "5m"
         max-file: "3"
+
+volumes:
+  mail-state:

@@ -74,9 +74,15 @@ def test_protocol_and_annotations(client):
                   "clientInfo": {"name": "test", "version": "1"}})
     assert result["serverInfo"]["name"] == "Yandex Mail"
     tools = {t["name"]: t for t in rpc(client, "tools/list")["tools"]}
-    assert set(tools) == {"list_folders", "search_messages", "read_message", "mark_read", "move_message", "archive_message"}
+    assert {"list_folders", "search_messages", "read_message", "mark_read", "move_message", "archive_message"} <= set(tools)
+    assert len(tools) == 48
+    assert not any("delete" in x or "send" in x or "expunge" in x for x in tools if x != "get_sender_stats")
     for name, tool in tools.items():
-        assert tool["annotations"]["readOnlyHint"] == (name in {"list_folders", "search_messages", "read_message"})
+        assert tool["annotations"]["readOnlyHint"] == (name not in {
+            "mark_read", "move_message", "archive_message", "create_folder", "rename_folder", "subscribe_folder",
+            "unsubscribe_folder", "set_message_flags", "mark_unread", "mark_flagged", "mark_unflagged", "mark_answered",
+            "mark_unanswered", "bulk_set_flags", "copy_message", "bulk_copy_messages", "bulk_move_messages",
+            "bulk_archive_messages", "create_label", "rename_label", "apply_labels", "remove_labels"})
 
 
 def test_host_origin(client):
@@ -186,7 +192,7 @@ def test_modern_sdk_client(imap):
                                          headers=AUTH) as http:
                 async with Client(streamable_http_client(BASE + "/mcp", http_client=http), mode="2026-07-28") as c:
                     result = await c.list_tools()
-                    assert len(result.tools) == 6
+                    assert len(result.tools) == 48
                     result = await c.call_tool("list_folders", {})
                     assert result.structured_content["ok"]
             async with httpx2.AsyncClient(transport=httpx2.ASGITransport(app=app),

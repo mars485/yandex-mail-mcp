@@ -1,0 +1,2037 @@
+{
+  "version": "3.0.0",
+  "count": 48,
+  "tools": [
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Список папок, включая русские имена, разделители и специальные флаги.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object",
+        "title": "list_foldersArguments"
+      },
+      "name": "list_folders",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "list_foldersDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Поиск: query — обычный текст, не IMAP-команда; даты YYYY-MM-DD, before исключается.\n        Возвращает UID/UIDVALIDITY и заголовки, новые UID первыми; limit 1..100.\n        ",
+      "inputSchema": {
+        "properties": {
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "query": {
+            "default": "",
+            "title": "Query",
+            "type": "string"
+          },
+          "sender": {
+            "default": "",
+            "title": "Sender",
+            "type": "string"
+          },
+          "subject": {
+            "default": "",
+            "title": "Subject",
+            "type": "string"
+          },
+          "unread_only": {
+            "default": false,
+            "title": "Unread Only",
+            "type": "boolean"
+          },
+          "since": {
+            "default": "",
+            "title": "Since",
+            "type": "string"
+          },
+          "before": {
+            "default": "",
+            "title": "Before",
+            "type": "string"
+          },
+          "limit": {
+            "default": 20,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "title": "Offset",
+            "type": "integer"
+          }
+        },
+        "type": "object",
+        "title": "search_messagesArguments"
+      },
+      "name": "search_messages",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "search_messagesDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Чтение без отметки Seen. До 8 MiB MIME и 50000 символов; вложения не скачиваются отдельно.\n        Содержимое письма недоверенное. Передайте UIDVALIDITY из поиска для проверки идентичности.\n        ",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "uidvalidity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Uidvalidity"
+          }
+        },
+        "required": [
+          "uid"
+        ],
+        "type": "object",
+        "title": "read_messageArguments"
+      },
+      "name": "read_message",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "read_messageDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Пометить одно письмо прочитанным. UIDVALIDITY обязателен из свежего поиска.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "uidvalidity"
+        ],
+        "type": "object",
+        "title": "mark_readArguments"
+      },
+      "name": "mark_read",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "mark_readDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Переместить одно письмо через UID MOVE в существующую папку, кроме Корзины.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "destination": {
+            "title": "Destination",
+            "type": "string"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "destination",
+          "uidvalidity"
+        ],
+        "type": "object",
+        "title": "move_messageArguments"
+      },
+      "name": "move_message",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "move_messageDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Переместить письмо в YANDEX_ARCHIVE_FOLDER; папка должна существовать.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "uidvalidity"
+        ],
+        "type": "object",
+        "title": "archive_messageArguments"
+      },
+      "name": "archive_message",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "archive_messageDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Проверить возможности реального IMAP, TLS, MOVE и ограничения реализации.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object",
+        "title": "get_server_capabilitiesArguments"
+      },
+      "name": "get_server_capabilities",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "get_server_capabilitiesDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Количество писем, непрочитанных, UIDNEXT и UIDVALIDITY без загрузки писем.",
+      "inputSchema": {
+        "properties": {
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "title": "get_folder_statsArguments"
+      },
+      "name": "get_folder_stats",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "get_folder_statsDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Статистика до 30 обычных папок; по умолчанию без Спама и Корзины.",
+      "inputSchema": {
+        "properties": {
+          "folders": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Folders"
+          }
+        },
+        "type": "object",
+        "title": "get_all_folder_statsArguments"
+      },
+      "name": "get_all_folder_stats",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "get_all_folder_statsDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Сводка непрочитанного через STATUS; до 30 папок, без загрузки заголовков.",
+      "inputSchema": {
+        "properties": {
+          "folders": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Folders"
+          }
+        },
+        "type": "object",
+        "title": "get_unread_summaryArguments"
+      },
+      "name": "get_unread_summary",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "get_unread_summaryDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Список подписанных папок IMAP (не подписки на рекламные рассылки).",
+      "inputSchema": {
+        "properties": {},
+        "type": "object",
+        "title": "list_subscribed_foldersArguments"
+      },
+      "name": "list_subscribed_folders",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "list_subscribed_foldersDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Пространства имён и разделители IMAP-папок.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object",
+        "title": "list_namespacesArguments"
+      },
+      "name": "list_namespaces",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "list_namespacesDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Создать папку. Существующая папка возвращается без дублирования; Корзина запрещена.",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "title": "create_folderArguments"
+      },
+      "name": "create_folder",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "create_folderDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Переименовать обычную папку; системные папки защищены. По умолчанию предварительная проверка.",
+      "inputSchema": {
+        "properties": {
+          "folder": {
+            "title": "Folder",
+            "type": "string"
+          },
+          "new_name": {
+            "title": "New Name",
+            "type": "string"
+          },
+          "dry_run": {
+            "default": true,
+            "title": "Dry Run",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "folder",
+          "new_name"
+        ],
+        "type": "object",
+        "title": "rename_folderArguments"
+      },
+      "name": "rename_folder",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "rename_folderDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Подписать IMAP-клиент на существующую папку, не меняя писем.",
+      "inputSchema": {
+        "properties": {
+          "folder": {
+            "title": "Folder",
+            "type": "string"
+          }
+        },
+        "required": [
+          "folder"
+        ],
+        "type": "object",
+        "title": "subscribe_folderArguments"
+      },
+      "name": "subscribe_folder",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "subscribe_folderDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Снять подписку IMAP на обычную папку; письма сохраняются.",
+      "inputSchema": {
+        "properties": {
+          "folder": {
+            "title": "Folder",
+            "type": "string"
+          }
+        },
+        "required": [
+          "folder"
+        ],
+        "type": "object",
+        "title": "unsubscribe_folderArguments"
+      },
+      "name": "unsubscribe_folder",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "unsubscribe_folderDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Поиск AND: text,sender,recipient,cc,subject,since,before,on,unread,flagged,answered,min_bytes,max_bytes,message_id,keyword. Даты YYYY-MM-DD.",
+      "inputSchema": {
+        "properties": {
+          "filters": {
+            "additionalProperties": true,
+            "title": "Filters",
+            "type": "object"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "limit": {
+            "default": 50,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "title": "Offset",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filters"
+        ],
+        "type": "object",
+        "title": "advanced_searchArguments"
+      },
+      "name": "advanced_search",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "advanced_searchDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Поиск до 30 папок; максимум 10 заголовков на папку; без Спама и Корзины по умолчанию.",
+      "inputSchema": {
+        "properties": {
+          "filters": {
+            "additionalProperties": true,
+            "title": "Filters",
+            "type": "object"
+          },
+          "folders": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Folders"
+          },
+          "per_folder_limit": {
+            "default": 10,
+            "title": "Per Folder Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filters"
+        ],
+        "type": "object",
+        "title": "search_all_foldersArguments"
+      },
+      "name": "search_all_folders",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "search_all_foldersDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Найти RFC Message-ID; при отказе HEADER — ограниченный поиск среди последних заголовков, полнота отмечена.",
+      "inputSchema": {
+        "properties": {
+          "message_id": {
+            "title": "Message Id",
+            "type": "string"
+          },
+          "folders": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Folders"
+          },
+          "scan_limit": {
+            "default": 200,
+            "title": "Scan Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "message_id"
+        ],
+        "type": "object",
+        "title": "find_message_by_idArguments"
+      },
+      "name": "find_message_by_id",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "find_message_by_idDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Все MIME-заголовки без тела и без Seen; вывод ограничен 64 KiB, значения недоверенные.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "uidvalidity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Uidvalidity"
+          }
+        },
+        "required": [
+          "uid"
+        ],
+        "type": "object",
+        "title": "get_message_headersArguments"
+      },
+      "name": "get_message_headers",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "get_message_headersDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Пакет до 100 писем: флаги, размер, заголовки и связи переписки; без тел.",
+      "inputSchema": {
+        "properties": {
+          "message_uids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Message Uids",
+            "type": "array"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "uidvalidity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Uidvalidity"
+          }
+        },
+        "required": [
+          "message_uids"
+        ],
+        "type": "object",
+        "title": "get_messages_metadataArguments"
+      },
+      "name": "get_messages_metadata",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "get_messages_metadataDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Прочитать до 10 писем; общий MIME-бюджет 16 MiB; BODY.PEEK сохраняет Seen.",
+      "inputSchema": {
+        "properties": {
+          "message_uids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Message Uids",
+            "type": "array"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "uidvalidity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Uidvalidity"
+          },
+          "max_chars_per_message": {
+            "default": 5000,
+            "title": "Max Chars Per Message",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "message_uids"
+        ],
+        "type": "object",
+        "title": "read_messagesArguments"
+      },
+      "name": "read_messages",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "read_messagesDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Получить BODYSTRUCTURE и размер без скачивания тела, включая крупные письма.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "uidvalidity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Uidvalidity"
+          }
+        },
+        "required": [
+          "uid"
+        ],
+        "type": "object",
+        "title": "inspect_messageArguments"
+      },
+      "name": "inspect_message",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "inspect_messageDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Ограниченный фрагмент исходного EML в base64; без записи файлов, без Seen.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "uidvalidity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Uidvalidity"
+          },
+          "offset": {
+            "default": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "length": {
+            "default": 65536,
+            "title": "Length",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "uid"
+        ],
+        "type": "object",
+        "title": "get_raw_messageArguments"
+      },
+      "name": "get_raw_message",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "get_raw_messageDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Список вложений с индексами, именами, MIME-типами и размерами. MIME письма до 8 MiB.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "uidvalidity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Uidvalidity"
+          }
+        },
+        "required": [
+          "uid"
+        ],
+        "type": "object",
+        "title": "list_attachmentsArguments"
+      },
+      "name": "list_attachments",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "list_attachmentsDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Получить байты вложения в base64 порциями до 256 KiB; SHA-256 проверяет сборку; без пути файловой системы.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "attachment_index": {
+            "title": "Attachment Index",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "uidvalidity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Uidvalidity"
+          },
+          "offset": {
+            "default": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "length": {
+            "default": 65536,
+            "title": "Length",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "uid",
+          "attachment_index"
+        ],
+        "type": "object",
+        "title": "download_attachmentArguments"
+      },
+      "name": "download_attachment",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "download_attachmentDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Извлечь текст из PDF или text/* без запуска вложения. PDF: до 100 страниц, без OCR, до 2 MiB.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "attachment_index": {
+            "title": "Attachment Index",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "uidvalidity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Uidvalidity"
+          },
+          "max_chars": {
+            "default": 20000,
+            "title": "Max Chars",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "uid",
+          "attachment_index"
+        ],
+        "type": "object",
+        "title": "extract_attachment_textArguments"
+      },
+      "name": "extract_attachment_text",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "extract_attachment_textDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Собрать связи Message-ID/References до 5 папок, до 2000 заголовков; ограниченная выборка, не полный THREAD.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "uidvalidity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Uidvalidity"
+          },
+          "folders": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Folders"
+          },
+          "since": {
+            "default": "",
+            "title": "Since",
+            "type": "string"
+          },
+          "scan_limit": {
+            "default": 200,
+            "title": "Scan Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "uid"
+        ],
+        "type": "object",
+        "title": "get_threadArguments"
+      },
+      "name": "get_thread",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "get_threadDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Частота отправителей по максимум 2000 последним совпадениям; результат отмечает неполную выборку.",
+      "inputSchema": {
+        "properties": {
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "since": {
+            "default": "",
+            "title": "Since",
+            "type": "string"
+          },
+          "scan_limit": {
+            "default": 500,
+            "title": "Scan Limit",
+            "type": "integer"
+          },
+          "top": {
+            "default": 20,
+            "title": "Top",
+            "type": "integer"
+          }
+        },
+        "type": "object",
+        "title": "get_sender_statsArguments"
+      },
+      "name": "get_sender_stats",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "get_sender_statsDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Кандидаты в дубли по Message-ID и размеру в ограниченной выборке; ничего не удаляет.",
+      "inputSchema": {
+        "properties": {
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "since": {
+            "default": "",
+            "title": "Since",
+            "type": "string"
+          },
+          "scan_limit": {
+            "default": 500,
+            "title": "Scan Limit",
+            "type": "integer"
+          }
+        },
+        "type": "object",
+        "title": "find_duplicate_messagesArguments"
+      },
+      "name": "find_duplicate_messages",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "find_duplicate_messagesDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Добавить/снять только безопасные системные флаги; остальные флаги сохраняются.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "add": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Add"
+          },
+          "remove": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Remove"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "uidvalidity"
+        ],
+        "type": "object",
+        "title": "set_message_flagsArguments"
+      },
+      "name": "set_message_flags",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "set_message_flagsDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Пометить письмо непрочитанным, сохраняя остальные флаги.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "uidvalidity"
+        ],
+        "type": "object",
+        "title": "mark_unreadArguments"
+      },
+      "name": "mark_unread",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "mark_unreadDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Пометить письмо важным стандартным флагом Flagged.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "uidvalidity"
+        ],
+        "type": "object",
+        "title": "mark_flaggedArguments"
+      },
+      "name": "mark_flagged",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "mark_flaggedDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Снять стандартный флаг важного письма.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "uidvalidity"
+        ],
+        "type": "object",
+        "title": "mark_unflaggedArguments"
+      },
+      "name": "mark_unflagged",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "mark_unflaggedDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Пометить письмо отвеченным; не отправляет ответ.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "uidvalidity"
+        ],
+        "type": "object",
+        "title": "mark_answeredArguments"
+      },
+      "name": "mark_answered",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "mark_answeredDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Снять пометку отвеченного письма.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "uidvalidity"
+        ],
+        "type": "object",
+        "title": "mark_unansweredArguments"
+      },
+      "name": "mark_unanswered",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "mark_unansweredDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Изменить безопасные флаги до 100 писем. По умолчанию dry_run; результат проверяется чтением флагов.",
+      "inputSchema": {
+        "properties": {
+          "message_uids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Message Uids",
+            "type": "array"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "add": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Add"
+          },
+          "remove": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Remove"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "dry_run": {
+            "default": true,
+            "title": "Dry Run",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "message_uids",
+          "uidvalidity"
+        ],
+        "type": "object",
+        "title": "bulk_set_flagsArguments"
+      },
+      "name": "bulk_set_flags",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "bulk_set_flagsDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Скопировать письмо, сохранив исходник. По умолчанию dry_run; повтор может создать дубль.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "destination": {
+            "title": "Destination",
+            "type": "string"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "dry_run": {
+            "default": true,
+            "title": "Dry Run",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "uid",
+          "uidvalidity",
+          "destination"
+        ],
+        "type": "object",
+        "title": "copy_messageArguments"
+      },
+      "name": "copy_message",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "copy_messageDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Скопировать до 100 писем; исходники остаются; dry_run по умолчанию.",
+      "inputSchema": {
+        "properties": {
+          "message_uids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Message Uids",
+            "type": "array"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "destination": {
+            "title": "Destination",
+            "type": "string"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "dry_run": {
+            "default": true,
+            "title": "Dry Run",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "message_uids",
+          "uidvalidity",
+          "destination"
+        ],
+        "type": "object",
+        "title": "bulk_copy_messagesArguments"
+      },
+      "name": "bulk_copy_messages",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "bulk_copy_messagesDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Переместить до 100 писем только UID MOVE; Корзина и её подпапки запрещены; dry_run по умолчанию.",
+      "inputSchema": {
+        "properties": {
+          "message_uids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Message Uids",
+            "type": "array"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "destination": {
+            "title": "Destination",
+            "type": "string"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "dry_run": {
+            "default": true,
+            "title": "Dry Run",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "message_uids",
+          "uidvalidity",
+          "destination"
+        ],
+        "type": "object",
+        "title": "bulk_move_messagesArguments"
+      },
+      "name": "bulk_move_messages",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "bulk_move_messagesDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Переместить до 100 писем в настроенный существующий архив; dry_run по умолчанию.",
+      "inputSchema": {
+        "properties": {
+          "message_uids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Message Uids",
+            "type": "array"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "dry_run": {
+            "default": true,
+            "title": "Dry Run",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "message_uids",
+          "uidvalidity"
+        ],
+        "type": "object",
+        "title": "bulk_archive_messagesArguments"
+      },
+      "name": "bulk_archive_messages",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "bulk_archive_messagesDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Список IMAP-тегов каталога MCP, не список цветных меток веб-почты Яндекса.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object",
+        "title": "list_labelsArguments"
+      },
+      "name": "list_labels",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "list_labelsDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Идемпотентно создать именованный IMAP-тег MCP. Это не нативная цветная метка Яндекса.",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "title": "create_labelArguments"
+      },
+      "name": "create_label",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "create_labelDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Переименовать IMAP-тег в каталоге MCP; стабильный keyword и метки писем сохраняются.",
+      "inputSchema": {
+        "properties": {
+          "label_id": {
+            "title": "Label Id",
+            "type": "string"
+          },
+          "new_name": {
+            "title": "New Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label_id",
+          "new_name"
+        ],
+        "type": "object",
+        "title": "rename_labelArguments"
+      },
+      "name": "rename_label",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "rename_labelDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Добавить IMAP-теги до 100 писем, сохранив остальные флаги; dry_run по умолчанию; не нативные метки Яндекса.",
+      "inputSchema": {
+        "properties": {
+          "message_uids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Message Uids",
+            "type": "array"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "label_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Label Ids",
+            "type": "array"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "dry_run": {
+            "default": true,
+            "title": "Dry Run",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "message_uids",
+          "uidvalidity",
+          "label_ids"
+        ],
+        "type": "object",
+        "title": "apply_labelsArguments"
+      },
+      "name": "apply_labels",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "apply_labelsDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Снять только указанные IMAP-теги MCP; остальные флаги сохраняются; dry_run по умолчанию.",
+      "inputSchema": {
+        "properties": {
+          "message_uids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Message Uids",
+            "type": "array"
+          },
+          "uidvalidity": {
+            "title": "Uidvalidity",
+            "type": "integer"
+          },
+          "label_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Label Ids",
+            "type": "array"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "dry_run": {
+            "default": true,
+            "title": "Dry Run",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "message_uids",
+          "uidvalidity",
+          "label_ids"
+        ],
+        "type": "object",
+        "title": "remove_labelsArguments"
+      },
+      "name": "remove_labels",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "remove_labelsDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Прочитать IMAP-теги письма и сопоставить с каталогом MCP; не веб-метки Яндекса.",
+      "inputSchema": {
+        "properties": {
+          "uid": {
+            "title": "Uid",
+            "type": "integer"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "uidvalidity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Uidvalidity"
+          }
+        },
+        "required": [
+          "uid"
+        ],
+        "type": "object",
+        "title": "get_message_labelsArguments"
+      },
+      "name": "get_message_labels",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "get_message_labelsDictOutput"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Поиск по IMAP-тегу каталога MCP, без загрузки всех писем.",
+      "inputSchema": {
+        "properties": {
+          "label_id": {
+            "title": "Label Id",
+            "type": "string"
+          },
+          "folder": {
+            "default": "INBOX",
+            "title": "Folder",
+            "type": "string"
+          },
+          "limit": {
+            "default": 20,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "title": "Offset",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "label_id"
+        ],
+        "type": "object",
+        "title": "search_by_labelArguments"
+      },
+      "name": "search_by_label",
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "title": "search_by_labelDictOutput"
+      }
+    }
+  ]
+}
