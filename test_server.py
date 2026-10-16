@@ -75,7 +75,7 @@ def test_protocol_and_annotations(client):
     assert result["serverInfo"]["name"] == "Yandex Mail"
     tools = {t["name"]: t for t in rpc(client, "tools/list")["tools"]}
     assert {"list_folders", "search_messages", "read_message", "mark_read", "move_message", "archive_message"} <= set(tools)
-    assert len(tools) == 48
+    assert len(tools) == 55
     assert not any("delete" in x or "send" in x or "expunge" in x for x in tools if x != "get_sender_stats")
     for name, tool in tools.items():
         assert tool["annotations"]["readOnlyHint"] == (name not in {
@@ -192,7 +192,7 @@ def test_modern_sdk_client(imap):
                                          headers=AUTH) as http:
                 async with Client(streamable_http_client(BASE + "/mcp", http_client=http), mode="2026-07-28") as c:
                     result = await c.list_tools()
-                    assert len(result.tools) == 48
+                    assert len(result.tools) == 55
                     result = await c.call_tool("list_folders", {})
                     assert result.structured_content["ok"]
             async with httpx2.AsyncClient(transport=httpx2.ASGITransport(app=app),

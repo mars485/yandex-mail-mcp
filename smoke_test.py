@@ -46,10 +46,10 @@ def main():
     print("MCP initialize: OK")
     names = {tool["name"] for tool in rpc("tools/list", {}, 2)["tools"]}
     expected = {"list_folders", "search_messages", "read_message", "mark_read", "move_message", "archive_message"}
-    if not expected <= names or len(names) != 48 or any(
+    if not expected <= names or len(names) != 55 or any(
             "delete" in name or "expunge" in name or name.startswith("send_") for name in names):
         raise ValueError("Unexpected tools")
-    print("48 expected tools, no send/delete/expunge tools: OK")
+    print("55 expected tools, no send/delete/expunge tools: OK")
     if args.imap:
         result = rpc("tools/call", {"name": "list_folders", "arguments": {}}, 3)
         structured = result.get("structuredContent")

@@ -14,6 +14,8 @@ from email import policy
 from email.parser import BytesParser
 from email.utils import getaddresses
 from pathlib import Path
+from html.parser import HTMLParser
+from urllib.parse import urlsplit
 from typing import Any
 
 MAX_BATCH = 100
@@ -180,7 +182,7 @@ def register_tools(operation, cfg, api):
 
     def label_note():
         return {"backend": "imap_keywords", "native_web_labels": False,
-                "note": "Это IMAP-теги MCP. Отображение цветных меток в веб-почте Яндекса не гарантируется."}
+                "note": "Это внутренние IMAP-теги MCP, НЕ видимые цветные метки Яндекса. Не используйте их как замену веб-меткам."}
 
     def change_flags(c, values, add, remove):
         if not add and not remove or set(add) & set(remove) or not set(add + remove) <= SAFE_FLAGS:
@@ -207,6 +209,120 @@ def register_tools(operation, cfg, api):
             (c.move if move else c.copy)(values, target)
         return {"ok": True, "dry_run": dry_run, "count": len(values), "uids": values, "destination": target,
                 "note": "В целевой папке получите новые UID поиском. Не повторяйте COPY/MOVE после ошибки без проверки."}
+
+    @operation()
+    def get_folder_tree() -> dict[str, Any]:
+        """Структура папок с реальным разделителем IMAP и флагами; без чтения писем."""
+        with api.connection(cfg) as c:
+            rows = []
+            for flags, delimiter, name in c.list_folders():
+                sep = api.text(delimiter) if delimiter else None
+                rows.append({"name": name, "delimiter": sep,
+                             "parent": name.rsplit(sep, 1)[0] if sep and sep in name else None,
+                             "flags": [api.text(x) for x in flags]})
+            return {"ok": True, "folders": rows}
+
+    @operation()
+    def search_new_messages(after_uid: int, uidvalidity: int, folder: str = "INBOX", limit: int = 50) -> dict[str, Any]:
+        """Новые UID после контрольной точки, старшие по порядку; UIDVALIDITY обязателен, без Seen."""
+        bounded(after_uid, 0, 4294967295); bounded(limit, 1, 100)
+        with api.connection(cfg) as c:
+            validity = selected(c, folder, uidvalidity)
+            # IMAP n:* can include the current largest UID even when n is beyond it.
+            found = [] if after_uid == 4294967295 else sorted(
+                x for x in c.search(["UID", f"{after_uid + 1}:*"]) if x > after_uid)
+            page = found[:limit]
+            return {"ok": True, "folder": folder, "uidvalidity": validity,
+                    "messages": row_headers(c, page), "total": len(found), "has_more": len(found) > limit,
+                    "next_after_uid": page[-1] if page else after_uid}
+
+    @operation()
+    def count_messages(filters: dict[str, Any], folder: str = "INBOX") -> dict[str, Any]:
+        """Число совпадений без тел писем; неполный fallback Message-ID явно отмечается."""
+        criteria(filters)
+        with api.connection(cfg) as c:
+            validity = selected(c, folder); found, truncated, method = search_ids(c, filters)
+            return {"ok": True, "folder": folder, "uidvalidity": validity,
+                    "count": len(found), "exact": not truncated, "search_method": method}
+
+    @operation()
+    def search_any(conditions: list[dict[str, Any]], folder: str = "INBOX", limit: int = 50, offset: int = 0) -> dict[str, Any]:
+        """Объединение до 5 структурированных AND-поисков (OR), с дедупликацией UID."""
+        bounded(len(conditions), 1, 5); bounded(limit, 1, 100); bounded(offset, 0, 200000)
+        for condition in conditions: criteria(condition)
+        with api.connection(cfg) as c:
+            validity = selected(c, folder); found = set(); incomplete = False
+            for condition in conditions:
+                values, truncated, _ = search_ids(c, condition)
+                found.update(values); incomplete |= truncated
+            ordered = sorted(found, reverse=True)
+            return {"ok": True, "folder": folder, "uidvalidity": validity, "total": len(ordered),
+                    "truncated": incomplete, "messages": row_headers(c, ordered[offset:offset + limit]),
+                    "next_offset": offset + limit if offset + limit < len(ordered) else None}
+
+    @operation()
+    def get_message_addresses(uid: int, folder: str = "INBOX", uidvalidity: int | None = None) -> dict[str, Any]:
+        """Адреса From/To/Cc/Reply-To/Sender из заголовка; адреса отправителя не подтверждены."""
+        with api.connection(cfg) as c:
+            validity = selected(c, folder, uidvalidity); api.existing(c, uid)
+            raw = body_bytes(c.fetch([uid], ["BODY.PEEK[HEADER]<0.65537>"]).get(uid, {})) or b""
+            msg = BytesParser(policy=policy.default).parsebytes(raw[:65536], headersonly=True)
+            result = {field: [{"name": name[:1000], "address": address[:1000]} for name, address in
+                             getaddresses([str(x) for x in msg.get_all(field, [])])][:100]
+                      for field in ("From", "To", "Cc", "Reply-To", "Sender")}
+            return {"ok": True, "uid": uid, "folder": folder, "uidvalidity": validity,
+                    "addresses": result, "truncated": len(raw) > 65536,
+                    "max_addresses_per_field": 100, "untrusted_content": True}
+
+    @operation()
+    def get_message_links(uid: int, folder: str = "INBOX", uidvalidity: int | None = None, limit: int = 100) -> dict[str, Any]:
+        """Извлечь HTTP(S)-ссылки из текста/HTML без перехода и загрузки внешних ресурсов; ссылки недоверенные."""
+        bounded(limit, 1, 200)
+        class Links(HTMLParser):
+            def __init__(self):
+                super().__init__(); self.links = []
+            def handle_starttag(self, tag, attrs):
+                if tag.lower() == "a":
+                    self.links.extend(value for key, value in attrs if key.lower() == "href" and value)
+        with api.connection(cfg) as c:
+            validity = selected(c, folder, uidvalidity); msg = parsed(c, uid)
+        found = []; seen = set(); scanned = 0; bounded_content = False
+        for part in msg.walk():
+            if part.get_content_type() not in {"text/plain", "text/html"} or part.get_content_disposition() == "attachment": continue
+            content = str(part.get_content()); remaining = 200000 - scanned
+            bounded_content |= len(content) > remaining
+            content = content[:remaining]; scanned += len(content)
+            parser = Links()
+            if part.get_content_type() == "text/html": parser.feed(content)
+            candidates = parser.links + re.findall(r'https?://[^\s<>"\']+', content)
+            for link in candidates:
+                if len(link) > 4096 or link in seen: continue
+                try: valid = urlsplit(link).scheme.lower() in {"http", "https"} and bool(urlsplit(link).hostname)
+                except ValueError: valid = False
+                if valid: seen.add(link); found.append(link)
+            if scanned >= 200000: bounded_content = True; break
+        return {"ok": True, "uid": uid, "folder": folder, "uidvalidity": validity,
+                "links": found[:limit], "truncated": bounded_content or len(found) > limit,
+                "fetched_external_resources": False, "untrusted_content": True}
+
+    @operation()
+    def get_attachment_inventory(message_uids: list[int], uidvalidity: int, folder: str = "INBOX") -> dict[str, Any]:
+        """Обзор вложений до 10 писем, общий MIME-бюджет 16 MiB; без сохранения файлов и Seen."""
+        values = uids(message_uids); bounded(len(values), 1, 10)
+        with api.connection(cfg) as c:
+            validity = selected(c, folder, uidvalidity); sizes = present(c, values)
+            if sum(row[b"RFC822.SIZE"] for row in sizes.values()) > 16 * 1024**2:
+                raise error("Общий размер больше 16 MiB; уменьшите пакет.")
+            rows = []
+            for uid in values:
+                msg = parsed(c, uid)
+                for i, part in enumerate(attachments(msg)):
+                    data = part.get_payload(decode=True)
+                    rows.append({"uid": uid, "attachment_index": i, "filename": part.get_filename(),
+                                 "content_type": part.get_content_type(),
+                                 "size_bytes": len(data) if data is not None else None})
+            return {"ok": True, "folder": folder, "uidvalidity": validity, "attachments": rows,
+                    "untrusted_content": True}
 
     @operation()
     def get_server_capabilities() -> dict[str, Any]:
